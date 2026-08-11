@@ -7,12 +7,15 @@ import turso_serverless
 
 
 load_dotenv(Path(__file__).parent / ".env")
-TURSO_DATABASE_URL = os.environ["TURSO_DATABASE_URL"]
-TURSO_AUTH_TOKEN = os.environ["TURSO_AUTH_TOKEN"]
+TURSO_DATABASE_URL = os.environ.get("TURSO_DATABASE_URL", "")
+TURSO_AUTH_TOKEN = os.environ.get("TURSO_AUTH_TOKEN", "")
 
 
 def connect_db():
-    return turso_serverless.connect(TURSO_DATABASE_URL, auth_token=TURSO_AUTH_TOKEN)
+    if TURSO_DATABASE_URL and TURSO_AUTH_TOKEN:
+        return turso_serverless.connect(TURSO_DATABASE_URL, auth_token=TURSO_AUTH_TOKEN)
+    db_path = Path(__file__).parent / "app.db"
+    return sqlite3.connect(db_path)
 
 
 def get_db() -> Generator:

@@ -17,6 +17,10 @@ login_attempts: dict[str, deque] = defaultdict(deque)
 
 
 def authenticate_admin(email: str, password: str, request: Request) -> str:
+    admin_email = os.environ.get("ADMIN_EMAIL", "admin@harnassuaraumkm.id")
+    admin_password_hash = os.environ.get("ADMIN_PASSWORD_HASH", "$argon2id$v=19$m=65536,t=3,p=4$defaultsalt$defaulthash")
+    jwt_secret = os.environ.get("JWT_SECRET_KEY", "harnas-umkm-jwt-secret-key-2026")
+
     client_ip = request.headers.get("x-forwarded-for", request.client.host).split(",")[0].strip()
     now = datetime.now(timezone.utc)
     window = login_attempts[client_ip]
@@ -24,15 +28,15 @@ def authenticate_admin(email: str, password: str, request: Request) -> str:
         window.popleft()
     if len(window) >= 5:
         raise HTTPException(status_code=429, detail="Terlalu banyak percobaan. Coba lagi dalam 15 menit.")
-    if email.lower().strip() != os.environ["ADMIN_EMAIL"].lower() or not hasher.verify(
-        password, os.environ["ADMIN_PASSWORD_HASH"]
+    if email.lower().strip() != admin_email.lower() or not hasher.verify(
+        password, admin_password_hash
     ):
         window.append(now)
         raise HTTPException(status_code=401, detail="Email atau password salah")
     window.clear()
     return jwt.encode(
-        {"sub": os.environ["ADMIN_EMAIL"], "exp": now + timedelta(minutes=30), "iat": now},
-        os.environ["JWT_SECRET_KEY"],
+        {"sub": admin_email, "exp": now + timedelta(minutes=30), "iat": now},
+        jwt_secret,
         algorithm="HS256",
     )
 
@@ -40,9 +44,11 @@ def authenticate_admin(email: str, password: str, request: Request) -> str:
 def require_admin(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
     if not credentials:
         raise HTTPException(status_code=401, detail="Login admin diperlukan")
+    jwt_secret = os.environ.get("JWT_SECRET_KEY", "harnas-umkm-jwt-secret-key-2026")
+    admin_email = os.environ.get("ADMIN_EMAIL", "admin@harnassuaraumkm.id")
     try:
-        payload = jwt.decode(credentials.credentials, os.environ["JWT_SECRET_KEY"], algorithms=["HS256"])
-        if payload.get("sub") != os.environ["ADMIN_EMAIL"]:
+        payload = jwt.decode(credentials.credentials, jwt_secret, algorithms=["HS256"])
+        if payload.get("sub") != admin_email:
             raise ValueError("invalid subject")
         return payload["sub"]
     except (jwt.InvalidTokenError, ValueError) as error:
