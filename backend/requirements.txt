@@ -9,3 +9,4 @@ Pillow==12.3.0
 supabase==2.31.0
 PyJWT==2.13.0
 pwdlib[argon2]==0.3.0
+turso-serverless==0.1.0
