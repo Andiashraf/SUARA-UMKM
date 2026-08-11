@@ -1,34 +1,33 @@
 import os
 from pathlib import Path
+from typing import Generator
 
 from dotenv import load_dotenv
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+import turso_serverless
 
 
 load_dotenv(Path(__file__).parent / ".env")
-DATABASE_URL = os.environ["DATABASE_URL"]
-ASYNC_DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
-
-engine = create_async_engine(
-    ASYNC_DATABASE_URL,
-    pool_size=10,
-    max_overflow=5,
-    pool_timeout=30,
-    pool_recycle=1800,
-    pool_pre_ping=False,
-    echo=False,
-    connect_args={"statement_cache_size": 0, "command_timeout": 30},
-)
-
-AsyncSessionLocal = async_sessionmaker(
-    bind=engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-    autocommit=False,
-    autoflush=False,
-)
+TURSO_DATABASE_URL = os.environ["TURSO_DATABASE_URL"]
+TURSO_AUTH_TOKEN = os.environ["TURSO_AUTH_TOKEN"]
 
 
-async def get_db():
-    async with AsyncSessionLocal() as session:
-        yield session
+def connect_db():
+    return turso_serverless.connect(TURSO_DATABASE_URL, auth_token=TURSO_AUTH_TOKEN)
+
+
+def get_db() -> Generator:
+    connection = connect_db()
+    try:
+        yield connection
+    finally:
+        connection.close()
+
+
+def row_to_dict(cursor, row) -> dict:
+    columns = [column[0] for column in cursor.description]
+    return dict(zip(columns, row))
+
+
+def rows_to_dicts(cursor) -> list[dict]:
+    columns = [column[0] for column in cursor.description]
+    return [dict(zip(columns, row)) for row in cursor.fetchall()]

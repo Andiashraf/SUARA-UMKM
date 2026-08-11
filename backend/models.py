@@ -20,16 +20,22 @@ class FanWallMessageModel(Base):
     city_regency: Mapped[str] = mapped_column(String(80), nullable=False, default="")
     message: Mapped[str] = mapped_column(Text, nullable=False)
     avatar_url: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    avatar_path: Mapped[str | None] = mapped_column(Text, nullable=True)
     likes_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     is_approved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, index=True)
     is_featured: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    moderation_status: Mapped[str] = mapped_column(String(12), nullable=False, default="pending", index=True)
     created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc)
+    )
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc)
     )
 
     __table_args__ = (
         Index("ix_fan_wall_approved_created", "is_approved", "created_at"),
         Index("ix_fan_wall_approved_likes", "is_approved", "likes_count"),
+        Index("ix_fan_wall_status_created", "moderation_status", "created_at"),
     )
 
 

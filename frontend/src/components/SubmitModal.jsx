@@ -3,23 +3,28 @@ import axios from "axios";
 import { Camera, CheckCircle2, Loader2, Send, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import imageCompression from "browser-image-compression";
 import { provinces, roles } from "@/data/content";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-const initial = { full_name: "", business_name: "", role: "Pelaku UMKM", province: "Kalimantan Barat", city_regency: "", message: "", avatar_url: "" };
+const initial = { full_name: "", business_name: "", role: "Pelaku UMKM", province: "Kalimantan Barat", city_regency: "", message: "", avatar_url: "", avatar_path: null };
 
 export const SubmitModal = ({ open, onClose, onSubmitted }) => {
   const [form, setForm] = useState(initial);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  useEffect(() => { if (!open) { setTimeout(() => { setForm(initial); setErrors({}); setSuccess(false); }, 250); } }, [open]);
+  const [photo, setPhoto] = useState(null);
+  const [preview, setPreview] = useState("");
+  useEffect(() => { if (!open) { setTimeout(() => { setForm(initial); setErrors({}); setSuccess(false); setPhoto(null); setPreview(""); }, 250); } }, [open]);
   if (!open) return null;
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
   const upload = (file) => {
     if (!file) return;
-    if (file.size > 900000) { toast.error("Ukuran foto maksimal 900 KB."); return; }
-    const reader = new FileReader(); reader.onload = () => update("avatar_url", reader.result); reader.readAsDataURL(file);
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { toast.error("Gunakan foto JPG, PNG, atau WebP."); return; }
+    if (file.size > 8_000_000) { toast.error("Ukuran foto awal maksimal 8 MB."); return; }
+    setPhoto(file);
+    const reader = new FileReader(); reader.onload = () => setPreview(reader.result); reader.readAsDataURL(file);
   };
   const submit = async (event) => {
     event.preventDefault();
@@ -29,8 +34,21 @@ export const SubmitModal = ({ open, onClose, onSubmitted }) => {
     if (form.message.trim().length < 20) next.message = "Aspirasi minimal 20 karakter agar pesannya bermakna.";
     setErrors(next); if (Object.keys(next).length) return;
     setLoading(true);
-    try { await axios.post(`${API}/fan-wall`, form); setSuccess(true); onSubmitted(); toast.success("Aspirasi berhasil dikirim untuk moderasi."); }
-    catch (error) { toast.error(error.response?.data?.detail?.[0]?.msg || "Aspirasi belum berhasil dikirim."); }
+    try {
+      let payload = { ...form };
+      if (photo) {
+        const compressed = await imageCompression(photo, { maxSizeMB: .95, maxWidthOrHeight: 1200, useWebWorker: true, fileType: photo.type });
+        const uploadData = new FormData();
+        uploadData.append("file", compressed, photo.name);
+        const { data } = await axios.post(`${API}/uploads/avatar`, uploadData);
+        payload = { ...payload, avatar_url: data.avatar_url, avatar_path: data.avatar_path };
+      }
+      await axios.post(`${API}/fan-wall`, payload); setSuccess(true); onSubmitted(); toast.success("Aspirasi berhasil dikirim untuk moderasi.");
+    }
+    catch (error) {
+      const detail = error.response?.data?.detail;
+      toast.error(typeof detail === "string" ? detail : detail?.[0]?.msg || "Aspirasi belum berhasil dikirim.");
+    }
     finally { setLoading(false); }
   };
   return <div className="modal-backdrop submit-backdrop" onMouseDown={onClose} data-testid="submit-aspiration-modal">
@@ -45,7 +63,7 @@ export const SubmitModal = ({ open, onClose, onSubmitted }) => {
         <label className="field"><span>Provinsi *</span><select value={form.province} onChange={(e) => update("province", e.target.value)} data-testid="aspiration-province-select">{provinces.filter((p) => p !== "Semua Provinsi").map((p) => <option key={p}>{p}</option>)}</select></label>
         <label className="field span-two"><span>Kota / Kabupaten</span><input value={form.city_regency} onChange={(e) => update("city_regency", e.target.value)} placeholder="Contoh: Kota Pontianak" data-testid="aspiration-city-input"/></label>
         <label className={errors.message ? "field message-field error span-two" : "field message-field span-two"}><span>Aspirasi Anda *</span><textarea value={form.message} onChange={(e) => update("message", e.target.value)} placeholder="Apa harapan Anda untuk masa depan UMKM Indonesia?" maxLength={800} data-testid="aspiration-message-textarea"/><em>{form.message.length}/800</em>{errors.message && <small data-testid="message-error">{errors.message}</small>}</label>
-        <label className="photo-field span-two" data-testid="aspiration-photo-upload"><input type="file" accept="image/*" onChange={(e) => upload(e.target.files[0])} data-testid="aspiration-photo-input"/><span>{form.avatar_url ? <img src={form.avatar_url} alt="Pratinjau foto profil"/> : <Camera/>}<b>{form.avatar_url ? "Ganti foto" : "Tambahkan foto profil"}</b><small>JPG atau PNG, maks. 900 KB</small></span></label>
+        <label className="photo-field span-two" data-testid="aspiration-photo-upload"><input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => upload(e.target.files[0])} data-testid="aspiration-photo-input"/><span>{preview ? <img src={preview} alt="Pratinjau foto profil"/> : <Camera/>}<b>{preview ? "Ganti foto" : "Tambahkan foto profil"}</b><small>JPG, PNG, atau WebP • otomatis dikompresi hingga 1 MB</small></span></label>
         <button className="button primary submit-final span-two" disabled={loading} data-testid="aspiration-submit-button">{loading ? <><Loader2 className="spin"/> Mengirim…</> : <>Kirim untuk Indonesia <Send size={18}/></>}</button>
       </form></>}
     </motion.div>

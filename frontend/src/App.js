@@ -7,6 +7,7 @@ import { FanWall } from "@/components/FanWall";
 import { PortalSections } from "@/components/PortalSections";
 import { SubmitModal } from "@/components/SubmitModal";
 import { Footer } from "@/components/Footer";
+import { ModerationDashboard } from "@/components/admin/ModerationDashboard";
 import "@/App.css";
 
 export const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -19,6 +20,10 @@ export default function App() {
   useEffect(() => {
     axios.get(`${API}/fan-wall/stats`).then(({ data }) => setStats((prev) => ({ ...prev, ...data }))).catch(() => {});
   }, [refreshKey]);
+
+  if (window.location.pathname.startsWith("/moderasi")) {
+    return <><ModerationDashboard /><Toaster richColors position="top-center" /></>;
+  }
 
   return (
     <div className="portal-shell" data-testid="harnas-umkm-portal">
