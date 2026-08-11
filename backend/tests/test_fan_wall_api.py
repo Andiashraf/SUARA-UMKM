@@ -32,6 +32,7 @@ def test_api_root(session, api_base_url):
     assert response.status_code == 200
     data = response.json()
     assert data["message"] == "Portal HARNAS UMKM 2026 API aktif"
+    assert data["database"] == "Supabase PostgreSQL"
 
 
 def test_fan_wall_stats_structure(session, api_base_url):
@@ -135,11 +136,50 @@ def test_like_endpoint_increments_approved_message(session, api_base_url):
     assert like_resp.status_code == 200
     liked = like_resp.json()
     assert liked["id"] == target["id"]
-    assert liked["likes_count"] == before_likes + 1
+    assert liked["likes_count"] >= before_likes
+    if liked.get("already_liked") is False:
+        assert liked["likes_count"] == before_likes + 1
+    else:
+        assert liked["likes_count"] == before_likes
 
     after_resp = session.get(f"{api_base_url}/api/fan-wall", params={"search": "Bahrul"})
     assert after_resp.status_code == 200
     after_data = after_resp.json()
     assert len(after_data) >= 1
     after_target = next(item for item in after_data if item["id"] == target["id"])
-    assert after_target["likes_count"] >= before_likes + 1
+    if liked.get("already_liked") is False:
+        assert after_target["likes_count"] >= before_likes + 1
+    else:
+        assert after_target["likes_count"] >= before_likes
+
+
+def test_like_endpoint_idempotent_for_identical_client_fingerprint(session, api_base_url):
+    list_resp = session.get(f"{api_base_url}/api/fan-wall", params={"search": "Ratna"})
+    assert list_resp.status_code == 200
+    items = list_resp.json()
+    assert len(items) >= 1
+    target = items[0]
+
+    headers = {
+        "x-forwarded-for": "203.0.113.10",
+        "user-agent": "pytest-dedupe-check/1.0",
+    }
+    first = session.post(f"{api_base_url}/api/fan-wall/{target['id']}/like", headers=headers)
+    assert first.status_code == 200
+    first_data = first.json()
+
+    second = session.post(f"{api_base_url}/api/fan-wall/{target['id']}/like", headers=headers)
+    assert second.status_code == 200
+    second_data = second.json()
+
+    assert second_data["id"] == first_data["id"]
+    assert second_data["already_liked"] is True
+    assert second_data["likes_count"] == first_data["likes_count"]
+
+
+def test_like_nonexistent_message_returns_404(session, api_base_url):
+    missing_id = str(uuid.uuid4())
+    response = session.post(f"{api_base_url}/api/fan-wall/{missing_id}/like")
+    assert response.status_code == 404
+    data = response.json()
+    assert data["detail"] == "Aspirasi tidak ditemukan"

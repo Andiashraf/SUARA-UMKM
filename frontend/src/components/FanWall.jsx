@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import { AnimatePresence, motion } from "framer-motion";
 import { Heart, MapPin, Search, Share2, SlidersHorizontal, X } from "lucide-react";
@@ -33,13 +33,28 @@ export const FanWall = ({ onSubmit, refreshKey }) => {
   const [sort, setSort] = useState("newest");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(null);
+  const requestSequence = useRef(0);
   const params = useMemo(() => ({ role, province, sort, search: search.trim() }), [role, province, sort, search]);
   useEffect(() => {
+    const requestId = ++requestSequence.current;
+    const controller = new AbortController();
     const timer = setTimeout(() => {
       setLoading(true);
-      axios.get(`${API}/fan-wall`, { params }).then(({ data }) => setMessages(data)).catch(() => setMessages([])).finally(() => setLoading(false));
+      axios.get(`${API}/fan-wall`, { params, signal: controller.signal })
+        .then(({ data }) => {
+          if (requestId === requestSequence.current) setMessages(data);
+        })
+        .catch((error) => {
+          if (requestId === requestSequence.current && error.code !== "ERR_CANCELED") setMessages([]);
+        })
+        .finally(() => {
+          if (requestId === requestSequence.current) setLoading(false);
+        });
     }, 250);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
   }, [params, refreshKey]);
   return (
     <section id="fan-wall" className="fan-section" data-testid="fan-wall-section">
@@ -53,7 +68,9 @@ export const FanWall = ({ onSubmit, refreshKey }) => {
         <label className="select-wrap"><MapPin size={17}/><select value={province} onChange={(e) => setProvince(e.target.value)} data-testid="fan-wall-province-filter">{provinces.map((item) => <option key={item}>{item}</option>)}</select></label>
         <select className="sort-select" value={sort} onChange={(e) => setSort(e.target.value)} data-testid="fan-wall-sort-select"><option value="newest">Terbaru</option><option value="popular">Terpopuler</option></select>
       </div>
-      <div className="wall-count" data-testid="fan-wall-result-count"><span>{messages.length}</span> suara ditemukan</div>
+      <div className="wall-count" data-testid="fan-wall-result-count">
+        {loading ? <span data-testid="fan-wall-result-loading">Mencari suara…</span> : <><span>{messages.length}</span> suara ditemukan</>}
+      </div>
       {loading ? <div className="voice-grid" data-testid="fan-wall-loading">{[1,2,3].map((n) => <div className="voice-skeleton" key={n}><i/><b/><span/><span/></div>)}</div>
         : messages.length ? <motion.div className="voice-grid" layout data-testid="fan-wall-grid">{messages.map((message) => <motion.div layout key={message.id}><FanCard message={message} onOpen={setSelected}/></motion.div>)}</motion.div>
         : <div className="wall-empty" data-testid="fan-wall-empty-state"><Search/><h3>Belum ada suara yang cocok</h3><p>Coba kata kunci atau filter lain.</p></div>}

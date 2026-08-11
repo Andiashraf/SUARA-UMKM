@@ -2,30 +2,32 @@ from datetime import datetime, timezone
 from hashlib import sha256
 from pathlib import Path
 from typing import List, Optional
+import asyncio
 import logging
 import os
 import re
 import uuid
 
-from dotenv import load_dotenv
-from fastapi import APIRouter, FastAPI, HTTPException, Query, Request
-from motor.motor_asyncio import AsyncIOMotorClient
-from pymongo.errors import DuplicateKeyError
+from alembic import command
+from alembic.config import Config
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Request
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+from sqlalchemy import func, or_, select, update
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.middleware.cors import CORSMiddleware
 
+from database import AsyncSessionLocal, engine, get_db
+from models import FanWallMessageModel, FanWallReactionModel
 
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / ".env")
 
-client = AsyncIOMotorClient(os.environ["MONGO_URL"])
-db = client[os.environ["DB_NAME"]]
 app = FastAPI(title="Portal HARNAS UMKM 2026 API")
 api_router = APIRouter(prefix="/api")
+ROOT_DIR = Path(__file__).parent
 
 
 class FanWallMessage(BaseModel):
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     full_name: str
     business_name: str
@@ -101,19 +103,30 @@ SEED_MESSAGES = [
 ]
 
 
+async def seed_database() -> None:
+    async with AsyncSessionLocal() as session:
+        count = await session.scalar(select(func.count()).select_from(FanWallMessageModel))
+        if count == 0:
+            now = datetime.now(timezone.utc)
+            session.add_all([FanWallMessageModel(**item, created_at=now) for item in SEED_MESSAGES])
+            await session.commit()
+
+
+def upgrade_database_schema() -> None:
+    config = Config(str(ROOT_DIR / "alembic.ini"))
+    config.set_main_option("script_location", str(ROOT_DIR / "alembic"))
+    command.upgrade(config, "head")
+
+
 @app.on_event("startup")
-async def seed_database():
-    await db.fan_wall_messages.create_index("id", unique=True)
-    await db.fan_wall_messages.create_index([("is_approved", 1), ("created_at", -1)])
-    await db.fan_wall_reactions.create_index([("message_id", 1), ("voter_hash", 1)], unique=True)
-    if await db.fan_wall_messages.count_documents({}) == 0:
-        now = datetime.now(timezone.utc).isoformat()
-        await db.fan_wall_messages.insert_many([{**item, "created_at": now} for item in SEED_MESSAGES])
+async def startup() -> None:
+    await asyncio.to_thread(upgrade_database_schema)
+    await seed_database()
 
 
 @api_router.get("/")
 async def root():
-    return {"message": "Portal HARNAS UMKM 2026 API aktif"}
+    return {"message": "Portal HARNAS UMKM 2026 API aktif", "database": "Supabase PostgreSQL"}
 
 
 @api_router.get("/fan-wall", response_model=List[FanWallMessage])
@@ -122,73 +135,76 @@ async def list_messages(
     province: Optional[str] = None,
     search: Optional[str] = Query(default=None, max_length=100),
     sort: str = "newest",
+    db: AsyncSession = Depends(get_db),
 ):
-    query = {"is_approved": True}
+    statement = select(FanWallMessageModel).where(FanWallMessageModel.is_approved.is_(True))
     if role and role != "Semua":
-        query["role"] = role
+        statement = statement.where(FanWallMessageModel.role == role)
     if province and province != "Semua Provinsi":
-        query["province"] = province
+        statement = statement.where(FanWallMessageModel.province == province)
     if search:
-        safe = re.escape(search.strip())
-        query["$or"] = [
-            {"full_name": {"$regex": safe, "$options": "i"}},
-            {"business_name": {"$regex": safe, "$options": "i"}},
-            {"message": {"$regex": safe, "$options": "i"}},
-        ]
-    order = [("likes_count", -1)] if sort == "popular" else [("created_at", -1)]
-    docs = await db.fan_wall_messages.find(query, {"_id": 0}).sort(order).to_list(200)
-    return docs
+        pattern = f"%{search.strip()}%"
+        statement = statement.where(or_(
+            FanWallMessageModel.full_name.ilike(pattern),
+            FanWallMessageModel.business_name.ilike(pattern),
+            FanWallMessageModel.message.ilike(pattern),
+        ))
+    if sort == "popular":
+        statement = statement.order_by(FanWallMessageModel.likes_count.desc(), FanWallMessageModel.created_at.desc())
+    else:
+        statement = statement.order_by(FanWallMessageModel.created_at.desc())
+    result = await db.execute(statement.limit(200))
+    return list(result.scalars().all())
 
 
 @api_router.get("/fan-wall/stats")
-async def fan_wall_stats():
-    voices = await db.fan_wall_messages.count_documents({"is_approved": True})
-    provinces = await db.fan_wall_messages.distinct("province", {"is_approved": True})
-    organizations = await db.fan_wall_messages.distinct("business_name", {"is_approved": True})
-    likes = await db.fan_wall_messages.aggregate([
-        {"$match": {"is_approved": True}}, {"$group": {"_id": None, "total": {"$sum": "$likes_count"}}}
-    ]).to_list(1)
-    return {"voices": voices, "provinces": len(provinces), "organizations": len(organizations), "supports": likes[0]["total"] if likes else 0}
+async def fan_wall_stats(db: AsyncSession = Depends(get_db)):
+    approved = FanWallMessageModel.is_approved.is_(True)
+    voices = await db.scalar(select(func.count()).select_from(FanWallMessageModel).where(approved))
+    provinces = await db.scalar(select(func.count(func.distinct(FanWallMessageModel.province))).where(approved))
+    organizations = await db.scalar(select(func.count(func.distinct(FanWallMessageModel.business_name))).where(approved))
+    supports = await db.scalar(select(func.coalesce(func.sum(FanWallMessageModel.likes_count), 0)).where(approved))
+    return {"voices": voices or 0, "provinces": provinces or 0, "organizations": organizations or 0, "supports": supports or 0}
 
 
 @api_router.post("/fan-wall", response_model=FanWallMessage, status_code=201)
-async def submit_message(payload: FanWallMessageCreate):
-    message = FanWallMessage(**payload.model_dump())
-    doc = message.model_dump()
-    doc["created_at"] = message.created_at.isoformat()
-    await db.fan_wall_messages.insert_one(doc)
+async def submit_message(payload: FanWallMessageCreate, db: AsyncSession = Depends(get_db)):
+    message = FanWallMessageModel(**payload.model_dump(), is_approved=False, is_featured=False, likes_count=0)
+    db.add(message)
+    await db.commit()
+    await db.refresh(message)
     return message
 
 
 @api_router.post("/fan-wall/{message_id}/like")
-async def like_message(message_id: str, request: Request):
-    existing = await db.fan_wall_messages.find_one(
-        {"id": message_id, "is_approved": True}, {"_id": 0, "id": 1, "likes_count": 1}
-    )
-    if not existing:
+async def like_message(message_id: str, request: Request, db: AsyncSession = Depends(get_db)):
+    message = await db.scalar(select(FanWallMessageModel).where(
+        FanWallMessageModel.id == message_id, FanWallMessageModel.is_approved.is_(True)
+    ))
+    if not message:
         raise HTTPException(status_code=404, detail="Aspirasi tidak ditemukan")
 
     forwarded_for = request.headers.get("x-forwarded-for", "")
     client_ip = forwarded_for.split(",")[0].strip() if forwarded_for else request.client.host
     user_agent = request.headers.get("user-agent", "")[:160]
     voter_hash = sha256(f"{message_id}:{client_ip}:{user_agent}".encode()).hexdigest()
+    db.add(FanWallReactionModel(message_id=message_id, voter_hash=voter_hash))
     try:
-        await db.fan_wall_reactions.insert_one({
-            "message_id": message_id,
-            "voter_hash": voter_hash,
-            "created_at": datetime.now(timezone.utc).isoformat(),
-        })
-    except DuplicateKeyError:
-        return {**existing, "already_liked": True}
+        await db.flush()
+    except IntegrityError:
+        await db.rollback()
+        current = await db.scalar(select(FanWallMessageModel).where(FanWallMessageModel.id == message_id))
+        return {"id": current.id, "likes_count": current.likes_count, "already_liked": True}
 
-    updated = await db.fan_wall_messages.find_one_and_update(
-        {"id": message_id, "is_approved": True}, {"$inc": {"likes_count": 1}},
-        return_document=True, projection={"_id": 0, "id": 1, "likes_count": 1},
+    result = await db.execute(
+        update(FanWallMessageModel)
+        .where(FanWallMessageModel.id == message_id)
+        .values(likes_count=FanWallMessageModel.likes_count + 1)
+        .returning(FanWallMessageModel.id, FanWallMessageModel.likes_count)
     )
-    if not updated:
-        await db.fan_wall_reactions.delete_one({"message_id": message_id, "voter_hash": voter_hash})
-        raise HTTPException(status_code=404, detail="Aspirasi tidak ditemukan")
-    return {**updated, "already_liked": False}
+    liked_id, likes_count = result.one()
+    await db.commit()
+    return {"id": liked_id, "likes_count": likes_count, "already_liked": False}
 
 
 app.include_router(api_router)
@@ -203,5 +219,5 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 
 
 @app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
+async def shutdown_database():
+    await engine.dispose()

@@ -5,15 +5,16 @@
 
 Pilihan user:
 - Membangun seluruh portal HARNAS UMKM: Fan Wall, sejarah, ABDSI, TNP IV, dan katalog UMKM.
-- Target database adalah Supabase PostgreSQL; Transaction Pooler URI belum diberikan.
+- Database menggunakan Supabase PostgreSQL melalui Transaction Pooler.
 - Role tambahan menggunakan default `Lainnya`.
 
 ## Architecture Decisions
 - Frontend mempertahankan scaffold React 19 + Tailwind/CSS, Framer Motion, Lucide, Axios, dan Sonner.
-- Backend menggunakan FastAPI dengan database MongoDB yang sudah aktif di environment agar alur end-to-end langsung fungsional.
+- Backend menggunakan FastAPI, SQLAlchemy async, asyncpg, dan Supabase PostgreSQL melalui Transaction Pooler port 6543.
+- Seluruh schema dikelola dengan Alembic revision `20260811_0001`; startup menjalankan `alembic upgrade head` sebelum proses seed.
 - API publik: list/search/filter/sort Fan Wall, statistik, submit moderasi, dan like dengan deduplikasi berbasis fingerprint privat.
 - Kiriman baru disimpan dengan `is_approved=false` dan tidak muncul sebelum moderasi.
-- Supabase PostgreSQL tetap menjadi target migrasi setelah user memberikan Transaction Pooler URI port 6543.
+- Reaksi disimpan pada tabel terpisah dengan unique constraint untuk mencegah duplikasi dukungan dari fingerprint yang sama.
 
 ## Implemented
 - Hero nasional, countdown HARNAS, statistik, navigasi desktop/mobile, dan CTA aspirasi.
@@ -22,10 +23,10 @@ Pilihan user:
 - Bagian sejarah Bung Hatta/Piagam Yogyakarta, ekosistem ABDSI, kepemimpinan, TNP IV/ICCME Pontianak, katalog UMKM, serta footer CTA.
 - Responsif desktop/tablet/mobile, akses keyboard, focus states, reduced motion, dan data-testid pada flow utama.
 - Pengujian: frontend build sukses, lint bersih, 9/9 API tests lulus, E2E desktop/mobile lulus.
+- Integrasi Supabase aktif: schema, seed, list/search/filter/sort/stats, submit moderasi, dan like dedupe telah diverifikasi; 13/13 regresi backend lulus.
 
 ## Prioritized Backlog
 ### P0
-- Migrasikan persistence dari MongoDB ke Supabase PostgreSQL setelah Transaction Pooler URI diberikan.
 - Tambahkan dashboard moderasi aman untuk approve/reject aspirasi.
 
 ### P1
@@ -39,6 +40,6 @@ Pilihan user:
 - Tambahkan ekspor laporan partisipasi untuk kebutuhan ABDSI.
 
 ## Next Tasks
-1. Terima Supabase Transaction Pooler URI dan jalankan migrasi schema/data.
-2. Bangun moderasi aspirasi dan pengelolaan katalog.
+1. Bangun moderasi aspirasi dan pengelolaan katalog.
+2. Pindahkan foto profil ke object storage dan optimasi gambar.
 3. Isi konten/foto resmi ABDSI, TNP IV, dan produk UMKM final.
