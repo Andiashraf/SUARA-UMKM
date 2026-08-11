@@ -4,6 +4,8 @@ WORKDIR /app
 
 ENV CI=false
 ENV GENERATE_SOURCEMAP=false
+ENV DISABLE_ESLINT_PLUGIN=true
+ENV TSC_COMPILE_ON_ERROR=true
 ENV NODE_OPTIONS=--max-old-space-size=2048
 
 COPY package*.json ./
