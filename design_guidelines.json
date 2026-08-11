@@ -1,0 +1,150 @@
+{
+  "theme": "light",
+  "typography": {
+    "heading_font": "Plus Jakarta Sans",
+    "body_font": "Inter",
+    "hierarchy": {
+      "display": "text-5xl md:text-6xl font-black tracking-tight leading-[1.1]",
+      "h1": "text-4xl md:text-5xl font-bold tracking-tight leading-[1.2]",
+      "h2": "text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight leading-[1.3]",
+      "h3": "text-xl md:text-2xl font-semibold",
+      "h4": "text-lg md:text-xl font-medium",
+      "body_large": "text-base md:text-lg leading-relaxed",
+      "body": "text-sm md:text-base leading-relaxed",
+      "caption": "text-xs md:text-sm font-medium"
+    },
+    "instructions_to_main_agent": "Use Plus Jakarta Sans for headings and Inter for body text. Ensure headings have tight tracking (`tracking-tight`) to look premium. Body text must be clean and highly readable."
+  },
+  "colors": {
+    "primary": {
+      "main": "#5B21B6",
+      "light": "#6D28D9",
+      "dark": "#4C1D95",
+      "foreground": "#FFFFFF"
+    },
+    "secondary": {
+      "main": "#F97316",
+      "light": "#F59E0B",
+      "dark": "#EAB308",
+      "foreground": "#FFFFFF"
+    },
+    "accent": {
+      "main": "#DC2626",
+      "light": "#E11D48",
+      "foreground": "#FFFFFF"
+    },
+    "text": {
+      "primary": "#0F172A",
+      "secondary": "#1E293B",
+      "muted": "#64748B"
+    },
+    "background": {
+      "default": "#F8FAFC",
+      "paper": "#FFFFFF",
+      "subtle": "#FAF5FF",
+      "highlight": "#FFFBEB"
+    },
+    "signature_gradient": "bg-gradient-to-br from-[#5B21B6] via-[#DC2626] to-[#F59E0B]",
+    "instructions_to_main_agent": "Use Deep Violet (#5B21B6) as the primary brand color for active states and critical CTAs. The signature gradient must be used selectively (e.g., primary buttons, hero text highlight, subtle borders) to avoid overwhelming the user. Ensure contrast ratios meet WCAG AA standards (4.5:1 for text). Do not use fully transparent backgrounds for overlays or headers."
+  },
+  "visual_enhancers": {
+    "shadows": {
+      "sm": "shadow-[0_2px_8px_rgba(15,23,42,0.08)]",
+      "md": "shadow-[0_8px_24px_rgba(15,23,42,0.12)]",
+      "lg": "shadow-[0_16px_48px_rgba(15,23,42,0.16)]"
+    },
+    "borders": {
+      "subtle": "border-slate-200",
+      "active": "border-violet-700"
+    },
+    "radii": {
+      "card": "rounded-2xl",
+      "button": "rounded-full",
+      "badge": "rounded-full",
+      "input": "rounded-xl"
+    },
+    "instructions_to_main_agent": "Use soft, layered shadows rather than harsh drop shadows. Components like the form and profile card must match the MSMEs Day 2026 reference exactly in terms of border-radius, padding, and subtle borders. Do not overuse glassmorphism; stick to solid or semi-solid surfaces."
+  },
+  "grids_and_layouts": {
+    "container": "max-w-[1280px] mx-auto px-4 md:px-8",
+    "bento_grid": "grid grid-cols-1 md:grid-cols-8 lg:grid-cols-12 gap-6 md:gap-8",
+    "fan_wall_mosaic": "columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6",
+    "spacing_scale": "use 8px base (p-2, p-4, p-6, p-8, p-12, p-16, p-24)",
+    "section_spacing": "py-20 md:py-28",
+    "instructions_to_main_agent": "Use Bento grid layouts for the main portal sections (Hero, ABDSI ecosystem, Event info) but for the Fan Wall, use a Masonry-style layout (`columns` CSS or a masonry library). The Fan Wall and Profile Card structures must bypass generic UI frameworks and precisely emulate the reference UI."
+  },
+  "components": {
+    "profile_card": {
+      "instructions_to_main_agent": "CRITICAL: The Profile Card must 100% emulate the MSMEs Day 2026 reference. Use a clean white background, subtle border (`border-slate-200`), and `rounded-2xl`. Structure: Top row features the Avatar (left) and Name + Business (right). Below that, add Badges for 'Role' and 'Location'. Then, the main message/aspiration text (`text-slate-700`). Bottom row includes timestamp, and interactive Like/Share buttons. Use a subtle hover state (`-translate-y-1` and elevated shadow)."
+    },
+    "submit_form_modal": {
+      "instructions_to_main_agent": "CRITICAL: The Submit Aspiration Form must 100% emulate the MSMEs Day 2026 reference. Group inputs cleanly. Use `rounded-xl` for inputs with a `bg-slate-50` default and `bg-white` on focus. Fields include: Full Name, Business/Org Name, Role (dropdown), Province (dropdown), City, and Aspiration/Message (Textarea as primary focus). The submit button should use the signature gradient."
+    },
+    "buttons": {
+      "primary": "rounded-full bg-gradient-to-r from-violet-700 via-rose-600 to-amber-500 text-white font-semibold shadow-md hover:shadow-lg transition-all",
+      "secondary": "rounded-full bg-violet-800 text-white font-semibold shadow-sm hover:bg-violet-900 transition-colors",
+      "ghost": "rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors"
+    },
+    "navigation": {
+      "instructions_to_main_agent": "Use a sticky header (`z-50`) with `bg-white/80 backdrop-blur-xl border-b border-slate-200`. Include logo on the left, main links in the center (desktop), and a primary CTA on the right."
+    }
+  },
+  "motion": {
+    "transitions": "transition-all duration-300 ease-out",
+    "hover_card": "hover:-translate-y-1 hover:shadow-lg",
+    "entrance": "fade-in slide-in-from-bottom-4 duration-700",
+    "instructions_to_main_agent": "Keep animations subtle. Use framer-motion for smooth entrance animations (staggered fade-up) and counter animations for participation statistics. Hover states on interactive elements must be snappy but smooth."
+  },
+  "media": {
+    "images": {
+      "hero_background": {
+        "url": "https://images.unsplash.com/photo-1560439514-4e9645039924?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODh8MHwxfHNlYXJjaHwzfHxidXNpbmVzcyUyMGNvbmZlcmVuY2UlMjBjcm93ZHxlbnwwfHx8fDE3ODY0Mjc0MDJ8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Crowd of people in a building, representing the massive MSME community and conference."
+      },
+      "umkm_showcase_1": {
+        "url": "https://images.unsplash.com/photo-1771120790521-515467792fbf?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2ODl8MHwxfHNlYXJjaHwyfHxpbmRvbmVzaWFuJTIwc3RyZWV0JTIwZm9vZCUyMG1hcmtldHxlbnwwfHx8fDE3ODY0MjczOTd8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Indonesian street food market showing active UMKM business."
+      },
+      "umkm_showcase_2": {
+        "url": "https://images.unsplash.com/photo-1660786442992-1ffb495fd962?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2ODl8MHwxfHNlYXJjaHwxfHxpbmRvbmVzaWFuJTIwc3RyZWV0JTIwZm9vZCUyMG1hcmtldHxlbnwwfHx8fDE3ODY0MjczOTd8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Man cooking food, depicting small business owners."
+      },
+      "avatar_1": {
+        "url": "https://images.unsplash.com/photo-1758691737605-69a0e78bd193?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTJ8MHwxfHNlYXJjaHw0fHxhc2lhbiUyMGJ1c2luZXNzJTIwcGVyc29uJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzg2NDI3NDAyfDA&ixlib=rb-4.1.0&q=85",
+        "description": "Smiling Asian business woman, perfect for Fan Wall avatars."
+      },
+      "avatar_2": {
+        "url": "https://images.unsplash.com/photo-1544168190-79c17527004f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTJ8MHwxfHNlYXJjaHwxfHxhc2lhbiUyMGJ1c2luZXNzJTIwcGVyc29uJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzg2NDI3NDAyfDA&ixlib=rb-4.1.0&q=85",
+        "description": "Asian business woman in blue dress shirt."
+      },
+      "avatar_3": {
+        "url": "https://images.unsplash.com/photo-1720501828093-c792c10e3f0b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTJ8MHwxfHNlYXJjaHwyfHxhc2lhbiUyMGJ1c2luZXNzJTIwcGVyc29uJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzg2NDI3NDAyfDA&ixlib=rb-4.1.0&q=85",
+        "description": "Smiling Asian man, for Fan Wall."
+      },
+      "event_conference": {
+        "url": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODh8MHwxfHNlYXJjaHwxfHxidXNpbmVzcyUyMGNvbmZlcmVuY2UlMjBjcm93ZHxlbnwwfHx8fDE3ODY0Mjc0MDJ8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Crowd sitting on chairs, representing the TNP IV ABDSI event."
+      }
+    }
+  },
+  "icons": {
+    "library": "lucide-react",
+    "instructions_to_main_agent": "Use Lucide React icons for all standard UI icons (Heart, MessageSquare, Share2, MapPin, Calendar, Award, CheckCircle2, UserCheck, Sparkles, ArrowRight, ExternalLink, Filter, Search). Keep icon sizes consistent (`w-5 h-5` for standard, `w-4 h-4` for dense UI like badges)."
+  },
+  "accessibility": {
+    "instructions_to_main_agent": "Ensure all interactive elements have visible focus states (`focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2`). Use semantic HTML (`<main>`, `<section>`, `<nav>`, `<button>`). Ensure color contrast ratios strictly meet WCAG AA (especially white text on signature gradient and dark text on light backgrounds)."
+  },
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "You tend to converge toward generic, 'on distribution' outputs. In frontend design, this creates what users call the 'AI slop' aesthetic. Avoid this: make creative, distinctive frontends that surprise and delight.",
+    "Do not use transparent backgrounds for headers or dropdown menus.",
+    "Never center-align the main app container. Keep text alignment natural.",
+    "Always use modern button styles (pill-shaped or rounded-xl) with interaction animations.",
+    "DO NOT apply universal transition (`transition: all`). Add transitions explicitly.",
+    "All interactive and key informational elements MUST include a `data-testid` attribute.",
+    "For toasts, use 'sonner'.",
+    "Prioritize using existing Shadcn components, but strictly override their styles for the Form and Profile Card to match the required reference design."
+  ],
+  "testing": {
+    "instructions_to_main_agent": "Include `data-testid` on all critical elements such as `data-testid='submit-aspiration-btn'`, `data-testid='fan-wall-filter-role'`, `data-testid='profile-card-like-btn'`."
+  }
+}
