@@ -2,6 +2,8 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+ENV CI=false
+
 COPY package*.json ./
 COPY .npmrc ./
 RUN npm install
