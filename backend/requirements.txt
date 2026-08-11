@@ -8,5 +8,4 @@ Pillow
 supabase
 PyJWT
 pwdlib[argon2]
-turso-serverless==0.1.0
 python-multipart
