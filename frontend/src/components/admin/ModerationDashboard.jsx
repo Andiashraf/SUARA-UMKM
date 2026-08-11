@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { AdminLogin } from "@/components/admin/AdminLogin";
 import { AdminMessageCard } from "@/components/admin/AdminMessageCard";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const API = `${process.env.REACT_APP_BACKEND_URL || ""}/api`;
 const tabs = [["pending", "Antrean"], ["approved", "Disetujui"], ["rejected", "Ditolak"], ["all", "Semua"]];
 
 export const ModerationDashboard = () => {

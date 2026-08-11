@@ -5,7 +5,7 @@ import { Heart, MapPin, Search, Share2, SlidersHorizontal, X } from "lucide-reac
 import { FanCard } from "@/components/FanCard";
 import { provinces, roles } from "@/data/content";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const API = `${process.env.REACT_APP_BACKEND_URL || ""}/api`;
 
 const DetailModal = ({ message, onClose }) => {
   if (!message) return null;

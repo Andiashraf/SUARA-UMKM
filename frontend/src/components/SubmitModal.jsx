@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import imageCompression from "browser-image-compression";
 import { provinces, roles } from "@/data/content";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const API = `${process.env.REACT_APP_BACKEND_URL || ""}/api`;
 const initial = { full_name: "", business_name: "", role: "Pelaku UMKM", province: "Kalimantan Barat", city_regency: "", message: "", avatar_url: "", avatar_path: null };
 
 export const SubmitModal = ({ open, onClose, onSubmitted }) => {

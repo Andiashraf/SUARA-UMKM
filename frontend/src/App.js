@@ -10,7 +10,7 @@ import { Footer } from "@/components/Footer";
 import { ModerationDashboard } from "@/components/admin/ModerationDashboard";
 import "@/App.css";
 
-export const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+export const API = `${process.env.REACT_APP_BACKEND_URL || ""}/api`;
 
 export default function App() {
   const [submitOpen, setSubmitOpen] = useState(false);

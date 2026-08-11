@@ -3,7 +3,7 @@ import axios from "axios";
 import { Building2, Heart, MapPin, MessageCircle, Share2 } from "lucide-react";
 import { toast } from "sonner";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const API = `${process.env.REACT_APP_BACKEND_URL || ""}/api`;
 
 export const FanCard = ({ message, onOpen }) => {
   const [liked, setLiked] = useState(false);
