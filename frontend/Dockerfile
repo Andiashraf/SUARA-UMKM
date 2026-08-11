@@ -3,6 +3,8 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 ENV CI=false
+ENV GENERATE_SOURCEMAP=false
+ENV NODE_OPTIONS=--max-old-space-size=2048
 
 COPY package*.json ./
 COPY .npmrc ./
