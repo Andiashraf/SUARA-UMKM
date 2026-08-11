@@ -154,10 +154,11 @@ def like_message(message_id: str, request: Request, db=Depends(get_db)):
 
 app.include_router(api_router)
 app.include_router(admin_router)
+origins = os.environ.get("CORS_ORIGINS", "*").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get("CORS_ORIGINS", "*").split(","),
+    allow_origins=origins,
+    allow_credentials=origins != ["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
