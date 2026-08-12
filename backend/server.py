@@ -122,7 +122,7 @@ def submit_message(payload: FanWallMessageCreate, db=Depends(get_db)):
             id, full_name, business_name, role, province, city_regency, message,
             avatar_url, avatar_path, likes_count, is_approved, is_featured,
             moderation_status, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 'pending', ?, ?)""",
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 1, 0, 'approved', ?, ?)""",
         (message_id, values["full_name"], values["business_name"], values["role"], values["province"], values["city_regency"], values["message"], values["avatar_url"], values["avatar_path"], now, now),
     )
     db.commit()
