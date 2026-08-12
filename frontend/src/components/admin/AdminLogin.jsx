@@ -6,7 +6,7 @@ export const AdminLogin = ({ onLogin, loading, error }) => {
   const [password, setPassword] = useState("");
   const submit = (event) => { event.preventDefault(); onLogin(email, password); };
   return <main className="admin-login-page" data-testid="admin-login-page">
-    <div className="admin-login-brand"><span className="brand-mark">12</span><div><b>HARNAS UMKM</b><small>PUSAT MODERASI • ABDSI</small></div></div>
+    <div className="admin-login-brand"><img src="/abdsi_logo.png" alt="ABDSI Logo" className="brand-logo" /><div><b>HARNAS UMKM</b><small>PUSAT MODERASI • ABDSI</small></div></div>
     <section className="admin-login-card">
       <div className="admin-lock"><LockKeyhole/></div>
       <div className="eyebrow violet">Area Terbatas</div>

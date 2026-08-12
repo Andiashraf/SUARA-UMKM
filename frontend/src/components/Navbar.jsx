@@ -12,7 +12,7 @@ export const Navbar = ({ onSubmit }) => {
     <header className="main-nav" data-testid="main-navigation">
       <div className="nav-inner">
         <a href="#beranda" className="brand-lockup" data-testid="brand-home-link">
-          <span className="brand-mark" aria-hidden="true">12</span>
+          <img src="/abdsi_logo.png" alt="ABDSI Logo" className="brand-logo" />
           <span><b>HARNAS UMKM</b><small>ABDSI • 2026</small></span>
         </a>
         <nav className="desktop-links" aria-label="Navigasi utama">
