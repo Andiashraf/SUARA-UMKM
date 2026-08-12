@@ -39,6 +39,8 @@ class FanWallMessage(BaseModel):
     city_regency: str = ""
     message: str
     avatar_url: str = ""
+    instagram_url: str = ""
+    linkedin_url: str = ""
     likes_count: int = 0
     is_approved: bool = False
     is_featured: bool = False
@@ -54,6 +56,8 @@ class FanWallMessageCreate(BaseModel):
     message: str = Field(min_length=20, max_length=800)
     avatar_url: str = Field(default="", max_length=2_000)
     avatar_path: Optional[str] = Field(default=None, max_length=500)
+    instagram_url: str = Field(default="", max_length=500)
+    linkedin_url: str = Field(default="", max_length=500)
 
     @field_validator("full_name", "business_name", "role", "province", "city_regency", "message")
     @classmethod
@@ -116,9 +120,9 @@ def submit_message(payload: FanWallMessageCreate, db=Depends(get_db)):
         """INSERT INTO fan_wall_messages (
             id, full_name, business_name, role, province, city_regency, message,
             avatar_url, avatar_path, likes_count, is_approved, is_featured,
-            moderation_status, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 1, 0, 'approved', ?, ?)""",
-        (message_id, values["full_name"], values["business_name"], values["role"], values["province"], values["city_regency"], values["message"], values["avatar_url"], values["avatar_path"], now, now),
+            moderation_status, instagram_url, linkedin_url, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 1, 0, 'approved', ?, ?, ?, ?)""",
+        (message_id, values["full_name"], values["business_name"], values["role"], values["province"], values["city_regency"], values["message"], values["avatar_url"], values["avatar_path"], values.get("instagram_url", ""), values.get("linkedin_url", ""), now, now),
     )
     db.commit()
     cursor = db.execute("SELECT * FROM fan_wall_messages WHERE id = ?", (message_id,))

@@ -7,7 +7,7 @@ import imageCompression from "browser-image-compression";
 import { provinces, roles } from "@/data/content";
 
 const API = `${process.env.REACT_APP_BACKEND_URL || ""}/api`;
-const initial = { full_name: "", business_name: "", role: "Pelaku UMKM", province: "Kalimantan Barat", city_regency: "", message: "", avatar_url: "", avatar_path: null };
+const initial = { full_name: "", business_name: "", role: "Pelaku UMKM", province: "Kalimantan Barat", city_regency: "", message: "", avatar_url: "", avatar_path: null, instagram_url: "", linkedin_url: "" };
 
 export const SubmitModal = ({ open, onClose, onSubmitted }) => {
   const [form, setForm] = useState(initial);
@@ -62,6 +62,8 @@ export const SubmitModal = ({ open, onClose, onSubmitted }) => {
         <label className="field"><span>Peran *</span><select value={form.role} onChange={(e) => update("role", e.target.value)} data-testid="aspiration-role-select">{roles.filter((r) => r !== "Semua").map((r) => <option key={r}>{r}</option>)}</select></label>
         <label className="field"><span>Provinsi *</span><select value={form.province} onChange={(e) => update("province", e.target.value)} data-testid="aspiration-province-select">{provinces.filter((p) => p !== "Semua Provinsi").map((p) => <option key={p}>{p}</option>)}</select></label>
         <label className="field span-two"><span>Kota / Kabupaten</span><input value={form.city_regency} onChange={(e) => update("city_regency", e.target.value)} placeholder="Contoh: Kota Pontianak" data-testid="aspiration-city-input"/></label>
+        <label className="field"><span>Link Instagram (Opsional)</span><input value={form.instagram_url} onChange={(e) => update("instagram_url", e.target.value)} placeholder="https://instagram.com/..." /></label>
+        <label className="field"><span>Link LinkedIn (Opsional)</span><input value={form.linkedin_url} onChange={(e) => update("linkedin_url", e.target.value)} placeholder="https://linkedin.com/in/..." /></label>
         <label className={errors.message ? "field message-field error span-two" : "field message-field span-two"}><span>Aspirasi Anda *</span><textarea value={form.message} onChange={(e) => update("message", e.target.value)} placeholder="Apa harapan Anda untuk masa depan UMKM Indonesia?" maxLength={800} data-testid="aspiration-message-textarea"/><em>{form.message.length}/800</em>{errors.message && <small data-testid="message-error">{errors.message}</small>}</label>
         <label className="photo-field span-two" data-testid="aspiration-photo-upload"><input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => upload(e.target.files[0])} data-testid="aspiration-photo-input"/><span>{preview ? <img src={preview} alt="Pratinjau foto profil"/> : <Camera/>}<b>{preview ? "Ganti foto" : "Tambahkan foto profil"}</b><small>JPG, PNG, atau WebP • otomatis dikompresi hingga 1 MB</small></span></label>
         <button className="button primary submit-final span-two" disabled={loading} data-testid="aspiration-submit-button">{loading ? <><Loader2 className="spin"/> Mengirim…</> : <>Kirim untuk Indonesia <Send size={18}/></>}</button>

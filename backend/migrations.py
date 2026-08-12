@@ -35,6 +35,10 @@ MIGRATIONS = {
         "CREATE INDEX IF NOT EXISTS ix_fan_wall_province ON fan_wall_messages(province)",
         "CREATE INDEX IF NOT EXISTS ix_fan_wall_likes ON fan_wall_messages(moderation_status, likes_count DESC)",
         "CREATE INDEX IF NOT EXISTS ix_fan_wall_reactions_message ON fan_wall_reactions(message_id)",
+    ],
+    2: [
+        "ALTER TABLE fan_wall_messages ADD COLUMN instagram_url TEXT NOT NULL DEFAULT ''",
+        "ALTER TABLE fan_wall_messages ADD COLUMN linkedin_url TEXT NOT NULL DEFAULT ''",
     ]
 }
 
@@ -57,13 +61,13 @@ def migrate_and_seed(seed_messages: list[dict]) -> None:
                 """INSERT OR IGNORE INTO fan_wall_messages (
                     id, full_name, business_name, role, province, city_regency, message,
                     avatar_url, avatar_path, likes_count, is_approved, is_featured,
-                    moderation_status, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    moderation_status, instagram_url, linkedin_url, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     item["id"], item["full_name"], item["business_name"], item["role"],
                     item["province"], item["city_regency"], item["message"], item["avatar_url"],
                     item.get("avatar_path"), item["likes_count"], 1, int(item["is_featured"]),
-                    "approved", now, now,
+                    "approved", item.get("instagram_url", ""), item.get("linkedin_url", ""), now, now,
                 ),
             )
         connection.commit()

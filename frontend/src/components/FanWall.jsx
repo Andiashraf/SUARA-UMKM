@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import { AnimatePresence, motion } from "framer-motion";
-import { Heart, MapPin, Search, Share2, SlidersHorizontal, X } from "lucide-react";
+import { Heart, MapPin, Search, Share2, SlidersHorizontal, X, Instagram, Linkedin } from "lucide-react";
 import { FanCard } from "@/components/FanCard";
 import { provinces, roles } from "@/data/content";
 
@@ -18,6 +18,12 @@ const DetailModal = ({ message, onClose }) => {
         <div className="eyebrow" data-testid="profile-detail-province"><MapPin size={15}/>{message.city_regency}, {message.province}</div>
         <h2 id="detail-name" data-testid="profile-detail-name">{message.full_name}</h2>
         <p className="detail-business" data-testid="profile-detail-business">{message.business_name}</p>
+        {(message.instagram_url || message.linkedin_url) && (
+          <div className="social-links" style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+            {message.instagram_url && <a href={message.instagram_url} target="_blank" rel="noopener noreferrer" style={{ color: "#E1306C" }}><Instagram size={20}/></a>}
+            {message.linkedin_url && <a href={message.linkedin_url} target="_blank" rel="noopener noreferrer" style={{ color: "#0077B5" }}><Linkedin size={20}/></a>}
+          </div>
+        )}
         <blockquote data-testid="profile-detail-message">“{message.message}”</blockquote>
         <div className="detail-actions"><span data-testid="profile-detail-likes"><Heart size={18}/> {message.likes_count} dukungan</span><button onClick={share} data-testid="profile-detail-share-button"><Share2 size={18}/> Bagikan via WhatsApp</button></div>
       </div>
