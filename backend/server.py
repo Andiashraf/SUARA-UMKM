@@ -8,6 +8,7 @@ import re
 import uuid
 
 from fastapi import APIRouter, Depends, FastAPI, File, HTTPException, Query, Request, UploadFile
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from starlette.middleware.cors import CORSMiddleware
 
@@ -18,6 +19,13 @@ from storage_service import upload_avatar
 
 
 app = FastAPI(title="Portal HARNAS UMKM 2026 API")
+
+from pathlib import Path
+import os
+UPLOADS_DIR = Path(__file__).parent / "uploads"
+os.makedirs(UPLOADS_DIR / "avatars", exist_ok=True)
+app.mount("/api/static", StaticFiles(directory=UPLOADS_DIR), name="static")
+
 api_router = APIRouter(prefix="/api")
 
 

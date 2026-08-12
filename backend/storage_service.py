@@ -4,23 +4,14 @@ import asyncio
 import os
 import uuid
 
-from dotenv import load_dotenv
 from fastapi import HTTPException
 from PIL import Image
-from supabase import Client, create_client
 
-
-load_dotenv(Path(__file__).parent / ".env")
 MAX_AVATAR_SIZE = 1_000_000
 MIME_EXTENSIONS = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}
 
-
-def _client() -> Client:
-    secret = os.environ.get("SUPABASE_SECRET_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
-    if not secret:
-        raise HTTPException(status_code=503, detail="Supabase Storage belum dikonfigurasi oleh administrator")
-    return create_client(os.environ["SUPABASE_URL"], secret)
-
+UPLOADS_DIR = Path(__file__).parent / "uploads" / "avatars"
+os.makedirs(UPLOADS_DIR, exist_ok=True)
 
 def validate_image(raw: bytes, declared_mime: str) -> tuple[str, str]:
     if len(raw) > MAX_AVATAR_SIZE:
@@ -38,38 +29,31 @@ def validate_image(raw: bytes, declared_mime: str) -> tuple[str, str]:
         raise HTTPException(status_code=415, detail="Format file tidak sesuai dengan isi gambar")
     return actual_mime, MIME_EXTENSIONS[actual_mime]
 
-
 async def upload_avatar(raw: bytes, declared_mime: str) -> tuple[str, str]:
     mime, extension = validate_image(raw, declared_mime)
-    path = f"avatars/{uuid.uuid4()}.{extension}"
-    bucket = os.environ.get("STORAGE_BUCKET", "fan-wall-avatars")
-
-    def upload() -> str:
-        client = _client()
-        client.storage.from_(bucket).upload(
-            path,
-            raw,
-            {"content-type": mime, "cache-control": "31536000", "upsert": "false"},
-        )
-        return client.storage.from_(bucket).get_public_url(path)
-
+    filename = f"{uuid.uuid4()}.{extension}"
+    filepath = UPLOADS_DIR / filename
+    
+    def save_file():
+        with open(filepath, "wb") as f:
+            f.write(raw)
+            
     try:
-        return path, await asyncio.to_thread(upload)
+        await asyncio.to_thread(save_file)
+        # Return path and the public URL that FastAPI will serve
+        public_url = f"/api/static/avatars/{filename}"
+        return f"avatars/{filename}", public_url
     except HTTPException:
         raise
     except Exception as error:
-        raise HTTPException(status_code=502, detail="Upload foto ke Supabase Storage gagal") from error
-
+        raise HTTPException(status_code=502, detail="Gagal menyimpan foto di server") from error
 
 async def remove_avatar(path: str | None) -> None:
     if not path:
         return
-
-    def remove() -> None:
-        client = _client()
-        client.storage.from_(os.environ.get("STORAGE_BUCKET", "fan-wall-avatars")).remove([path])
-
     try:
-        await asyncio.to_thread(remove)
+        filepath = UPLOADS_DIR.parent / path
+        if filepath.exists():
+            os.remove(filepath)
     except Exception:
         return
