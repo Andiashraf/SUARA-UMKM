@@ -43,7 +43,7 @@ export const SubmitModal = ({ open, onClose, onSubmitted }) => {
         const { data } = await axios.post(`${API}/uploads/avatar`, uploadData);
         payload = { ...payload, avatar_url: data.avatar_url, avatar_path: data.avatar_path };
       }
-      await axios.post(`${API}/fan-wall`, payload); setSuccess(true); onSubmitted(); toast.success("Aspirasi berhasil dikirim untuk moderasi.");
+      await axios.post(`${API}/fan-wall`, payload); setSuccess(true); onSubmitted(); toast.success("Aspirasi berhasil dikirim dan ditayangkan.");
     }
     catch (error) {
       const detail = error.response?.data?.detail;
@@ -54,7 +54,7 @@ export const SubmitModal = ({ open, onClose, onSubmitted }) => {
   return <div className="modal-backdrop submit-backdrop" onMouseDown={onClose} data-testid="submit-aspiration-modal">
     <motion.div className="submit-modal" onMouseDown={(e) => e.stopPropagation()} initial={{ opacity: 0, y: 32, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} role="dialog" aria-modal="true" aria-labelledby="submit-title">
       <button className="modal-close" onClick={onClose} data-testid="submit-modal-close-button" aria-label="Tutup form"><X/></button>
-      {success ? <div className="success-state" data-testid="submit-success-state"><CheckCircle2/><span>Aspirasi diterima</span><h2>Terima kasih telah ikut bersuara.</h2><p>Pesan Anda akan tampil setelah proses moderasi.</p><button className="button primary" onClick={onClose} data-testid="submit-success-close-button">Kembali ke Fan Wall</button></div>
+      {success ? <div className="success-state" data-testid="submit-success-state"><CheckCircle2/><span>Aspirasi diterima</span><h2>Terima kasih telah ikut bersuara.</h2><p>Pesan Anda sudah langsung tampil di Fan Wall.</p><button className="button primary" onClick={onClose} data-testid="submit-success-close-button">Kembali ke Fan Wall</button></div>
       : <><header className="submit-header"><div className="eyebrow gold">Suara Anda berarti</div><h2 id="submit-title" data-testid="submit-form-heading">Kirim Aspirasi UMKM</h2><p>Satu pesan tulus dapat membuka percakapan dan perubahan.</p></header>
       <form onSubmit={submit} className="aspiration-form" data-testid="submit-aspiration-form">
         <label className={errors.full_name ? "field error" : "field"}><span>Nama lengkap *</span><input value={form.full_name} onChange={(e) => update("full_name", e.target.value)} placeholder="Nama Anda" data-testid="aspiration-full-name-input"/>{errors.full_name && <small data-testid="full-name-error">{errors.full_name}</small>}</label>
