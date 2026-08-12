@@ -5,7 +5,7 @@ export const PortalSections = () => <>
   <section id="sejarah" className="history-section section-pad" data-testid="history-section">
     <div className="section-heading"><div><div className="eyebrow violet">Akar Gerakan</div><h2 data-testid="history-heading">Dari pemikiran Bung Hatta,<br/>menuju gerakan nasional.</h2></div><p data-testid="history-description">Hari UMKM Nasional membawa semangat ekonomi kerakyatan: usaha yang tumbuh bersama, berdaulat, dan menyejahterakan.</p></div>
     <div className="history-layout">
-      <div className="history-portrait" data-testid="bung-hatta-visual"><div className="portrait-caption"><span>12 Agustus 1902</span><b>Mohammad Hatta</b><small>Bapak Koperasi Indonesia</small></div></div>
+      <div className="history-portrait" style={{ backgroundImage: "url('/mohammad_hatta.jpg')" }} data-testid="bung-hatta-visual"><div className="portrait-caption"><span>12 Agustus 1902</span><b>Mohammad Hatta</b><small>Bapak Koperasi Indonesia</small></div></div>
       <div className="timeline" data-testid="history-timeline">{milestones.map((item, index) => <article key={item.year} data-testid={`history-milestone-${item.year}`}><span>{String(index + 1).padStart(2, "0")}</span><div><b>{item.year}</b><h3>{item.title}</h3><p>{item.text}</p></div></article>)}</div>
     </div>
     <blockquote className="history-quote" data-testid="history-motto">“UKM Kuat, Bangsa Berdaulat”<span>— Semangat Piagam Yogyakarta</span></blockquote>
@@ -16,7 +16,7 @@ export const PortalSections = () => <>
       <article className="abdsi-main"><div className="eyebrow light">Ekosistem Pendamping Nasional</div><h2 data-testid="abdsi-heading">ABDSI hadir agar UMKM tidak berjalan sendiri.</h2><p>Asosiasi Business Development Services Indonesia adalah organisasi profesi pendamping KUMKM sejak 2002—menghubungkan kompetensi, kebijakan, dan kebutuhan nyata pelaku usaha.</p><a href="#tnp" data-testid="abdsi-learn-link">Lihat agenda nasional <ArrowRight/></a></article>
       <article className="abdsi-number" data-testid="abdsi-stat-members"><Users/><strong>5.000<sup>+</sup></strong><span>Pendamping di seluruh Indonesia</span></article>
       <article className="abdsi-number amber" data-testid="abdsi-stat-regions"><MapPin/><strong>34<sup>+</sup></strong><span>DPW terhubung secara nasional</span></article>
-      <article className="leader-card" data-testid="abdsi-leader-card"><div className="leader-photo"/><div><span>Ketua Umum 2026–2030</span><h3>Dr. Bahrul Ulum Ilham, S.Pd., M.M., Ph.D.</h3><p>Memimpin kolaborasi pendamping untuk pertumbuhan UMKM yang inklusif dan berkelanjutan.</p></div></article>
+      <article className="leader-card" data-testid="abdsi-leader-card"><div className="leader-photo" style={{ backgroundImage: "url('/bahrul_ulum.png')" }}/><div><span>Ketua Umum 2026–2030</span><h3>Dr. Bahrul Ulum Ilham, S.Pd., M.M., Ph.D.</h3><p>Memimpin kolaborasi pendamping untuk pertumbuhan UMKM yang inklusif dan berkelanjutan.</p></div></article>
       <article className="standards-card" data-testid="abdsi-standards-card"><Award/><div><span>Standar Kompetensi</span><h3>SKKNI 181/2017 & BNSP</h3><p>Pendampingan profesional, terukur, dan berorientasi hasil.</p></div></article>
     </div>
   </section>
